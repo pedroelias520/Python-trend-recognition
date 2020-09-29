@@ -2,6 +2,19 @@ from yahooquery import Ticker
 import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
+from tkinter import *
+
+def __init__(self):
+    self.company= ""
+    self.root  = Tk()
+    user_name = "%USERNAME%"
+    self.root.resizable(True,True)
+    self.root.title("Bem-vindo"+user_name)
+
+    Button(self.root,text='Selecionar Empresa').grid(row=0, column=0,pady=0)
+    self.root.mainloop()
+
+
 
 def csv_generation (company_name):
     dados_yf = yf.download(tickers=company_name, period='max')
