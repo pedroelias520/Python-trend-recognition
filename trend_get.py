@@ -1,0 +1,19 @@
+from yahooquery import Ticker
+import yfinance as yf
+import pandas as pd
+import plotly.graph_objects as go
+
+def csv_generation (company_name):
+    dados_yf = yf.download(tickers=company_name, period='max')
+    path = 'C:/Users/Pedro Elias/Documents/Projetos_GitHub/Python-trend-recognition/'
+    dados_yf.to_csv(path + company_name+".csv")
+
+def csv_to_graph (csv_company):
+    data_frame = pd.read_csv(csv_company)
+    graph_fig = go.Figure(data=[go.Candlestick(x=data_frame['Date'],
+                                               open=data_frame['Open'],
+                                               high=data_frame['High'],
+                                               low=data_frame['Low'],
+                                               close=data_frame['Close']
+                                               )])
+    graph_fig.show()
