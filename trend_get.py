@@ -2,6 +2,7 @@ from yahooquery import Ticker
 import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
+import plotly.express as gx
 from tkinter import *
 
 tickers_ibov = {'ABEV3.SA', 'AZUL4.SA', 'B3SA3.SA', 'BBAS3.SA', 'BBDC4.SA', 'BBSE3.SA', 'BPAC11.SA', 'BRAP4.SA',
@@ -14,7 +15,7 @@ tickers_ibov = {'ABEV3.SA', 'AZUL4.SA', 'B3SA3.SA', 'BBAS3.SA', 'BBDC4.SA', 'BBS
                 'SBSP3.SA', 'SMLS3.SA', 'SULA11.SA', 'SUZB3.SA', 'TAEE11.SA', 'TIMP3.SA', 'TOTS3.SA', 'UGPA3.SA',
                 'USIM5.SA', 'VALE3.SA', 'VIVT4.SA', 'VVAR3.SA', 'WEGE3.SA', 'YDUQ3.SA'}
 times = {'max', '5', '10', '15', '30'}
-
+label_text = ""
 
 class Interface():
     def __init__(self):
@@ -28,7 +29,7 @@ class Interface():
         # Dropdown
         mainframe = Frame(self.root)
         mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
-        mainframe.columnconfigure(0, weight=1)
+        mainframe.columnconfigure(1, weight=1)
         mainframe.rowconfigure(0, weight=1)
         mainframe.pack(pady=100, padx=100)
 
@@ -36,7 +37,7 @@ class Interface():
         tkvar = StringVar(self.root)
         tkvar.set('Empresas')
         time = StringVar(self.root)
-        time.set('Tempo')
+        time.set('Tempo de exibição')
 
         # Cria popupMenu
         popupMenu = OptionMenu(mainframe, tkvar, *tickers_ibov)
@@ -64,12 +65,14 @@ class Interface():
             self.csv_to_graph(self.company)
         else:
             print("Todos campos devem ser selecionados")
+            label_text = "Todos os campos devem ser selecionados"
 
 
     def csv_generation(self,company_name, period_time):
         dados_yf = yf.download(tickers=company_name, period= period_time)
         path = 'C:/Users/Pedro Elias/Documents/Projetos_GitHub/Python-trend-recognition/'
         dados_yf.to_csv(path + company_name + ".csv")
+        dados_yf.to_excel(path+company_name+'.xlsx')
 
     def csv_to_graph(self,csv_company):
         data_frame = pd.read_csv(csv_company + ".csv")
@@ -79,6 +82,7 @@ class Interface():
                                                    low=data_frame['Low'],
                                                    close=data_frame['Close']
                                                    )])
+        #graph_fig.add_trace(go.Scatter(x=data_frame['Date'],y=data_frame['Close'],name='Medium',line=dict(color='purple',width=4)))
         graph_fig.show()
 
 
