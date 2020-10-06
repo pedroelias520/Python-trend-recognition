@@ -5,7 +5,7 @@ import numpy as np
 
 #Pegar os arrays disponíveis
 sns.set(style='darkgrid')
-company = 'REP'
+company = 'BBVA'
 df = trendet.identify_all_trends(company, 'Spain', '01/01/2018', '01/01/2019',window_size=5,identify='both')
 df.reset_index(inplace=True)
 df = df[['Open','Close','Up Trend','Down Trend']]
@@ -26,8 +26,8 @@ x = []
 for num in difference:
     x.append('{0:.3g}'.format(num))      
 
-df['Difference'] = x
-df.to_csv(company+'_Train.csv')
+df['Difference'] = x #Adiciona o array com as diferenças no dataframe
+df.to_csv(company+'_Train.csv') #Transforma o dataframe em .csv
 
 #Faz um csv para teste
 test_df = df
