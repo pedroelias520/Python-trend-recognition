@@ -1,27 +1,42 @@
-import sys
-from minisom import MiniSom
-import time
 import pandas as pd
-from sklearn.datasets import load_breast_cancer
-import semantic_version
+import numpy as np
+import matplotlib.pyplot as plt
 
-som_grid_rows = 5194
-som_grid_column = 7
-interations = 500
-sigma = 1
-learning_rate = 0.5
+stock_train_data = pd.DataFrame(pd.read_csv("BBVA_Train.csv"))
+stock_test_data = pd.DataFrame(pd.read_csv("REP_Test.csv"))
 
-data = pd.read_csv('VALE3.SA.csv')
+# treinamento de classificadores
+# Onde o segmento de treino achará os passageiros sobreviventes
 
-som = MiniSom(x=3, y=3, input_len=7,sigma=sigma,learning_rate=learning_rate,neighborhood_function='bubble')
-som.random_weights_init(data)
 
-start_time = time.time()
-som.train_random(data,interations) #treino com 500 interações
-elapsed_time = time.time() - start_time
-print(elapsed_time," seconds")
+titanic_dataset_train_Column = stock_train_data[["Up Trend"]]
+titanic_train_segment = (stock_train_data[["Up Trend"]] == 1)
+segment = np.array(titanic_train_segment).ravel()
 
-print("Quantificação...")
-qnt = som.quantization(data)
+test_column = stock_test_data[["Open","Close"]]
 
-print(qnt)
+
+from sklearn.linear_model import SGDClassifier
+
+sgd_clf = SGDClassifier(random_state=42)
+sgd_clf.fit(titanic_dataset_train_Column, segment)
+some_person = test_column.iloc[[1]]
+
+# teste de classificador
+sgd_clf.predict(some_person)
+
+# validação cruzada
+from sklearn.model_selection import cross_val_score
+cross_val_score(sgd_clf, titanic_dataset_train_Column, segment, cv=3, scoring="accuracy")
+
+# matriz de consfusão
+from sklearn.model_selection import cross_val_predict
+from sklearn.metrics import confusion_matrix
+
+y_train_pred = cross_val_predict(sgd_clf, titanic_dataset_train_Column, segment, cv=3)
+confusion_matrix(segment, y_train_pred)
+
+# controle de precisão
+from sklearn.metrics import precision_score, recall_score
+print(precision_score(segment, y_train_pred))
+
