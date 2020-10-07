@@ -5,10 +5,10 @@ import numpy as np
 
 #Pegar os arrays disponíveis
 sns.set(style='darkgrid')
-company = 'BBVA'
+company = 'REP'
 df = trendet.identify_all_trends(company, 'Spain', '01/01/2018', '01/01/2019',window_size=5,identify='both')
 df.reset_index(inplace=True)
-df = df[['Open','Close','Up Trend','Down Trend']]
+df = df[['Date','Open','Close','Up Trend','Down Trend']]
 
 #Transforma os dados em binários 
 df['Up Trend'] = df['Up Trend'].replace(['A','B','C','D','E','F'],1)
