@@ -52,6 +52,7 @@ from keras.optimizers import Adam
 from keras.layers.core import Activation
 from keras.callbacks import LambdaCallback
 from sklearn.preprocessing import MinMaxScaler
+import numpy as np
 
 
 
@@ -183,7 +184,6 @@ scaler = MinMaxScaler(feature_range=(0, 1))
 scaled = scaler.fit_transform(array(dataset['Close']).reshape(len(dataset['Close']), 1))
 dt_train = dataset.iloc[:,1:13]
 freature_columns = dataset.iloc[:,1:13].columns
-print(freature_columns)
 dataset = scaler.fit_transform(dt_train)
 dataset = pd.DataFrame(data=dataset,columns=freature_columns)
 #Junta a coluna com os dados
@@ -230,11 +230,10 @@ datahold = dataset[-number_of_holdout_data:]
 # In[17]:
 
 
-in_seq1 = array(datatrain['Year'])
-in_seq2 = array(datatrain['Day']) 
-in_seq3 = array(datatrain['Difference_Afirm'])
-in_seq4 = array(datatrain['Month'])
-
+in_seq1 = array(datatrain['Day'])
+in_seq2 = array(datatrain['Month']) 
+in_seq3 = array(datatrain['Volume'])
+in_seq4 = array(datatrain['Difference'])
 out_seq_train = array(datatrain['cntscl'])
 
 
@@ -257,10 +256,10 @@ datatrain_feed = hstack((in_seq1, in_seq2, in_seq3,in_seq4,out_seq_train))
 
 
 
-in_seq1 = array(datatest['Year'])
-in_seq2 = array(datatest['Day']) 
-in_seq3 = array(datatest['Difference_Afirm'])
-in_seq4 = array(datatest['Month'])
+in_seq1 = array(datatest['Day'])
+in_seq2 = array(datatest['Month']) 
+in_seq3 = array(datatest['Volume'])
+in_seq4 = array(datatest['Difference'])
 out_seq_test = array(datatest['cntscl'])
 
 
@@ -277,17 +276,17 @@ out_seq_test = out_seq_test.reshape((len(out_seq_test), 1))
 # In[22]:
 
 
-datatest_feed = hstack((in_seq1, in_seq2, in_seq3,in_seq4, out_seq_test))
+datatest_feed = hstack((in_seq1, in_seq2, in_seq3,in_seq4,out_seq_test))
 
 
 # In[23]:
 
 
 
-in_seq1 = array(datahold['Year'])
-in_seq2 = array(datahold['Day']) 
-in_seq3 = array(datahold['Difference_Afirm'])
-in_seq4 = array(datahold['Month'])
+in_seq1 = array(datahold['Day'])
+in_seq2 = array(datahold['Month']) 
+in_seq3 = array(datahold['Volume'])
+in_seq3 = array(datahold['Difference'])
 out_seq_hold = array(datahold['cntscl'])
 
 
@@ -311,7 +310,7 @@ datahold_feed = hstack((in_seq1, in_seq2, in_seq3,in_seq4,out_seq_hold))
 
 
 n_features = datatrain_feed.shape[1]
-n_input = 5
+n_input = 4
 generator_train = TimeseriesGenerator(datatrain_feed, out_seq_train, length=n_input, batch_size=len(datatrain_feed))
 
 
@@ -375,7 +374,7 @@ print("timesteps, features:", n_input, n_features)
 
 model = Sequential()
 
-model.add(SimpleRNN(4, activation='relu', input_shape=(n_input, n_features), return_sequences = False))
+model.add(SimpleRNN(5, activation='relu', input_shape=(n_input, n_features), return_sequences = False))
 model.add(Dense(1, activation='relu'))
 
 adam = Adam(lr=0.0001)
@@ -393,7 +392,7 @@ model.summary()
 # In[56]:
 
 
-score = model.fit_generator(generator_train, epochs=100, verbose=2, validation_data=generator_test)
+score = model.fit_generator(generator_train, epochs=3000, verbose=2, validation_data=generator_test)
 
 
 # #### Plot of Training and Test Loss Functions
@@ -420,10 +419,19 @@ plt.show()
 df_result = pd.DataFrame({'Actual' : [], 'Prediction' : []})
 
 for i in range(len(generator_test)):
-    x, y = generator_test[i]
-    x_input = array(x).reshape((1, n_input, n_features))
+    x_test, y_test = generator_test[i]
+    x_input = array(x_test).reshape((1, n_input, n_features))
     yhat = model.predict(x_input, verbose=2)
-    df_result = df_result.append({'Atual': scaler.inverse_transform(y)[0][0], 'Predição': scaler.inverse_transform(yhat)[0][0]}, ignore_index=True)
+    
+    trainPredict_dataset_like = np.zeros(shape=(len(y_test),12))
+    trainPredict_dataset_like[:,0] = y_test[:,0]
+    y_test = scaler.inverse_transform(trainPredict_dataset_like)[:,0]
+    
+    trainPredict_dataset_like = np.zeros(shape=(len(yhat),12))
+    trainPredict_dataset_like[:,0] = yhat[:,0]
+    yhat = scaler.inverse_transform(trainPredict_dataset_like)[:,0]
+    
+    df_result = df_result.append({'Actual': y, 'Prediction': yhat}, ignore_index=True)
 
 
 # #### Tabulating Actuals, Predictions and Differences
@@ -448,10 +456,12 @@ df_result
 mean = df_result['Actual'].mean()
 mae = (df_result['Actual'] - df_result['Prediction']).abs().mean()
 
-print("mean: ", mean)
-print("mae:", mae)
-print("mae/mean ratio: ", 100*mae/mean,"%")
-print("correctness: ", 100 - 100*mae/mean,"%")
+print("===============================================")
+print("Média de teste: ", mean)
+print("Diferença:", mae)
+print("Diferença/Média Percentual: ", 100*mae/mean,"%")
+print("Correção: ", 100 - 100*mae/mean,"%")
+print("===============================================")
 
 
 # #### Plot of Actuals and Predictions for Test Data
@@ -478,7 +488,16 @@ for i in range(len(generator_hold)):
     x, y = generator_hold[i]
     x_input = array(x).reshape((1, n_input, n_features))
     yhat = model.predict(x_input, verbose=2)
-    df_result = df_result.append({'Actual': scaler.inverse_transform(y)[0][0], 'Prediction': scaler.inverse_transform(yhat)[0][0]}, ignore_index=True)
+    
+    trainPredict_dataset_like = np.zeros(shape=(len(y),12))
+    trainPredict_dataset_like[:,0] = y[:,0]
+    y = scaler.inverse_transform(trainPredict_dataset_like)[:,0]
+    
+    trainPredict_dataset_like = np.zeros(shape=(len(yhat),12))
+    trainPredict_dataset_like[:,0] = yhat[:,0]
+    yhat = scaler.inverse_transform(trainPredict_dataset_like)[:,0]
+    
+    df_result = df_result.append({'Actual': y, 'Prediction': yhat}, ignore_index=True)
 
 
 # #### Tabulating Actuals, Predictions and Differences for Hold-Out Data
@@ -503,10 +522,11 @@ df_result
 mean = df_result['Actual'].mean()
 mae = (df_result['Actual'] - df_result['Prediction']).abs().mean()
 
-print("mean: ", mean)
-print("mae:", mae)
-print("mae/mean ratio: ", 100*mae/mean,"%")
-print("correctness: ", 100 - 100*mae/mean,"%")
+print("Média : ", mean)
+print("Diferença:", mae)
+print("Diferença/Média Percentual: ", 100*mae/mean,"%")
+print("Nível correção: ", 100 - 100*mae/mean,"%")
+print("===============================================")
 
 
 # #### Plot of Actuals and Predictions for Hold-Out Data
