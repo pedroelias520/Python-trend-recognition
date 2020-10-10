@@ -54,6 +54,7 @@ from keras.callbacks import LambdaCallback
 from sklearn.preprocessing import MinMaxScaler
 
 
+
 # ### Data Preprocessing
 
 # #### Reading the dataset
@@ -159,24 +160,6 @@ plt.show()
 
 # In[9]:
 
-one_hot = pd.get_dummies(dataset['Difference_Afirm'], prefix='difference_afirm')
-dataset = dataset.join(one_hot)
-
-one_hot = pd.get_dummies(dataset['Day'], prefix='day')
-dataset = dataset.join(one_hot)
-
-one_hot = pd.get_dummies(dataset['Year'], prefix='year')
-dataset = dataset.join(one_hot)
-
-one_hot = pd.get_dummies(dataset['Month'], prefix='month')
-dataset = dataset.join(one_hot)
-
-one_hot = pd.get_dummies(dataset['Volume'], prefix='volume')
-dataset = dataset.join(one_hot)
-
-one_hot = pd.get_dummies(dataset['Difference'], prefix='difference')
-dataset = dataset.join(one_hot)
-
 
 # In[10]:
 
@@ -193,11 +176,20 @@ dataset = dataset.join(one_hot)
 
 # In[12]:
 
-
+#Seleciona o tipo de escalonamento
 scaler = MinMaxScaler(feature_range=(0, 1))
+
+#Escalonamento de dados 
 scaled = scaler.fit_transform(array(dataset['Close']).reshape(len(dataset['Close']), 1))
+dt_train = dataset.iloc[:,1:13]
+freature_columns = dataset.iloc[:,1:13].columns
+print(freature_columns)
+dataset = scaler.fit_transform(dt_train)
+dataset = pd.DataFrame(data=dataset,columns=freature_columns)
+#Junta a coluna com os dados
 series = pd.DataFrame(scaled)
 series.columns = ['cntscl']
+
 
 
 # In[13]:
@@ -205,7 +197,6 @@ series.columns = ['cntscl']
 
 dataset = pd.merge(dataset, series, left_index=True, right_index=True)
 columns = dataset.columns
-print(columns)
 
 # In[14]:
 
@@ -218,8 +209,8 @@ dataset.head()
 # In[15]:
 
 
-number_of_test_data = 100
-number_of_holdout_data = 100
+number_of_test_data = 50
+number_of_holdout_data = 50
 number_of_training_data = len(dataset) - number_of_holdout_data - number_of_test_data
 print ("total, train, test, holdout:", len(dataset), number_of_training_data, number_of_test_data, number_of_holdout_data)
 
@@ -240,21 +231,9 @@ datahold = dataset[-number_of_holdout_data:]
 
 
 in_seq1 = array(datatrain['Year'])
-in_seq2 = array(datatrain['Day'])
-in_seq3 = array(datatrain['difference_afirm_0'])
-in_seq4 = array(datatrain['difference_afirm_1'])
-in_seq5 = array(datatrain['month_1'])
-in_seq6 = array(datatrain['month_2'])
-in_seq7 = array(datatrain['month_3'])
-in_seq8 = array(datatrain['month_4'])
-in_seq9 = array(datatrain['month_5'])
-in_seq10 = array(datatrain['month_6'])
-in_seq11 = array(datatrain['month_7'])
-in_seq12 = array(datatrain['month_8'])
-in_seq13 = array(datatrain['month_9'])
-in_seq14 = array(datatrain['month_10'])
-in_seq15 = array(datatrain['month_11'])
-in_seq16 = array(datatrain['month_12'])
+in_seq2 = array(datatrain['Day']) 
+in_seq3 = array(datatrain['Difference_Afirm'])
+in_seq4 = array(datatrain['Month'])
 
 out_seq_train = array(datatrain['cntscl'])
 
@@ -265,48 +244,23 @@ in_seq1 = in_seq1.reshape((len(in_seq1), 1))
 in_seq2 = in_seq2.reshape((len(in_seq2), 1))
 in_seq3 = in_seq3.reshape((len(in_seq3), 1))
 in_seq4 = in_seq4.reshape((len(in_seq4), 1))
-in_seq5 = in_seq5.reshape((len(in_seq5), 1))
-in_seq6 = in_seq6.reshape((len(in_seq6), 1))
-in_seq7 = in_seq7.reshape((len(in_seq7), 1))
-in_seq8 = in_seq8.reshape((len(in_seq8), 1))
-in_seq9 = in_seq9.reshape((len(in_seq9), 1))
-in_seq10 = in_seq10.reshape((len(in_seq10), 1))
-in_seq11 = in_seq11.reshape((len(in_seq11), 1))
-in_seq12 = in_seq12.reshape((len(in_seq12), 1))
-in_seq13 = in_seq13.reshape((len(in_seq13), 1))
-in_seq14 = in_seq14.reshape((len(in_seq14), 1))
-in_seq15 = in_seq15.reshape((len(in_seq15), 1))
-in_seq16 = in_seq16.reshape((len(in_seq16), 1))
 out_seq_train = out_seq_train.reshape((len(out_seq_train), 1))
 
 
 # In[19]:
 
 
-datatrain_feed = hstack((in_seq1, in_seq2, in_seq3,in_seq4,in_seq5,in_seq6,in_seq7,in_seq8,in_seq9,in_seq10,in_seq11,in_seq12,in_seq13,in_seq14,in_seq15,in_seq16,out_seq_train))
+datatrain_feed = hstack((in_seq1, in_seq2, in_seq3,in_seq4,out_seq_train))
 
 
 # In[20]:
 
 
-in_seq1 = array(datatest['Year'])
-in_seq2 = array(datatest['Month'])
-in_seq3 = array(datatest['Day'])
-in_seq4 = array(datatest['difference_afirm_0'])
-in_seq5 = array(datatest['difference_afirm_1'])
-in_seq5 = array(datatest['month_1'])
-in_seq6 = array(datatest['month_2'])
-in_seq7 = array(datatest['month_3'])
-in_seq8 = array(datatest['month_4'])
-in_seq9 = array(datatest['month_5'])
-in_seq10 = array(datatest['month_6'])
-in_seq11 = array(datatest['month_7'])
-in_seq12 = array(datatest['month_8'])
-in_seq13 = array(datatest['month_9'])
-in_seq14 = array(datatest['month_10'])
-in_seq15 = array(datatest['month_11'])
-in_seq16 = array(datatest['month_12'])
 
+in_seq1 = array(datatest['Year'])
+in_seq2 = array(datatest['Day']) 
+in_seq3 = array(datatest['Difference_Afirm'])
+in_seq4 = array(datatest['Month'])
 out_seq_test = array(datatest['cntscl'])
 
 
@@ -317,47 +271,23 @@ in_seq1 = in_seq1.reshape((len(in_seq1), 1))
 in_seq2 = in_seq2.reshape((len(in_seq2), 1))
 in_seq3 = in_seq3.reshape((len(in_seq3), 1))
 in_seq4 = in_seq4.reshape((len(in_seq4), 1))
-in_seq5 = in_seq5.reshape((len(in_seq5), 1))
-in_seq6 = in_seq6.reshape((len(in_seq6), 1))
-in_seq7 = in_seq7.reshape((len(in_seq7), 1))
-in_seq8 = in_seq8.reshape((len(in_seq8), 1))
-in_seq9 = in_seq9.reshape((len(in_seq9), 1))
-in_seq10 = in_seq10.reshape((len(in_seq10), 1))
-in_seq11 = in_seq11.reshape((len(in_seq11), 1))
-in_seq12 = in_seq12.reshape((len(in_seq12), 1))
-in_seq13 = in_seq13.reshape((len(in_seq13), 1))
-in_seq14 = in_seq14.reshape((len(in_seq14), 1))
-in_seq15 = in_seq15.reshape((len(in_seq15), 1))
-in_seq16 = in_seq16.reshape((len(in_seq16), 1))
 out_seq_test = out_seq_test.reshape((len(out_seq_test), 1))
 
 
 # In[22]:
 
 
-datatest_feed = hstack((in_seq1, in_seq2, in_seq3,in_seq4,in_seq5,in_seq6,in_seq7,in_seq8,in_seq9,in_seq10,in_seq11,in_seq12,in_seq13,in_seq14,in_seq15,in_seq16, out_seq_test))
+datatest_feed = hstack((in_seq1, in_seq2, in_seq3,in_seq4, out_seq_test))
 
 
 # In[23]:
 
 
+
 in_seq1 = array(datahold['Year'])
-in_seq2 = array(datahold['Month'])
-in_seq3 = array(datahold['Day'])
-in_seq4 = array(datahold['difference_afirm_0'])
-in_seq5 = array(datahold['difference_afirm_1'])
-in_seq5 = array(datahold['month_1'])
-in_seq6 = array(datahold['month_2'])
-in_seq7 = array(datahold['month_3'])
-in_seq8 = array(datahold['month_4'])
-in_seq9 = array(datahold['month_5'])
-in_seq10 = array(datahold['month_6'])
-in_seq11 = array(datahold['month_7'])
-in_seq12 = array(datahold['month_8'])
-in_seq13 = array(datahold['month_9'])
-in_seq14 = array(datahold['month_10'])
-in_seq15 = array(datahold['month_11'])
-in_seq16 = array(datahold['month_12'])
+in_seq2 = array(datahold['Day']) 
+in_seq3 = array(datahold['Difference_Afirm'])
+in_seq4 = array(datahold['Month'])
 out_seq_hold = array(datahold['cntscl'])
 
 
@@ -368,32 +298,20 @@ in_seq1 = in_seq1.reshape((len(in_seq1), 1))
 in_seq2 = in_seq2.reshape((len(in_seq2), 1))
 in_seq3 = in_seq3.reshape((len(in_seq3), 1))
 in_seq4 = in_seq4.reshape((len(in_seq4), 1))
-in_seq5 = in_seq5.reshape((len(in_seq5), 1))
-in_seq6 = in_seq6.reshape((len(in_seq6), 1))
-in_seq7 = in_seq7.reshape((len(in_seq7), 1))
-in_seq8 = in_seq8.reshape((len(in_seq8), 1))
-in_seq9 = in_seq9.reshape((len(in_seq9), 1))
-in_seq10 = in_seq10.reshape((len(in_seq10), 1))
-in_seq11 = in_seq11.reshape((len(in_seq11), 1))
-in_seq12 = in_seq12.reshape((len(in_seq12), 1))
-in_seq13 = in_seq13.reshape((len(in_seq13), 1))
-in_seq14 = in_seq14.reshape((len(in_seq14), 1))
-in_seq15 = in_seq15.reshape((len(in_seq15), 1))
-in_seq16 = in_seq16.reshape((len(in_seq16), 1))
 out_seq_hold = out_seq_hold.reshape((len(out_seq_hold), 1))
 
 
 # In[25]:
 
 
-datahold_feed = hstack((in_seq1, in_seq2, in_seq3,in_seq4,in_seq5,in_seq6,in_seq7,in_seq8,in_seq9,in_seq10,in_seq11,in_seq12,in_seq13,in_seq14,in_seq15,in_seq16 , out_seq_hold))
+datahold_feed = hstack((in_seq1, in_seq2, in_seq3,in_seq4,out_seq_hold))
 
 
 # In[26]:
 
 
 n_features = datatrain_feed.shape[1]
-n_input = 16
+n_input = 5
 generator_train = TimeseriesGenerator(datatrain_feed, out_seq_train, length=n_input, batch_size=len(datatrain_feed))
 
 
@@ -475,7 +393,7 @@ model.summary()
 # In[56]:
 
 
-score = model.fit_generator(generator_train, epochs=3000, verbose=2, validation_data=generator_test)
+score = model.fit_generator(generator_train, epochs=100, verbose=2, validation_data=generator_test)
 
 
 # #### Plot of Training and Test Loss Functions
@@ -505,7 +423,7 @@ for i in range(len(generator_test)):
     x, y = generator_test[i]
     x_input = array(x).reshape((1, n_input, n_features))
     yhat = model.predict(x_input, verbose=2)
-    df_result = df_result.append({'Actual': scaler.inverse_transform(y)[0][0], 'Prediction': scaler.inverse_transform(yhat)[0][0]}, ignore_index=True)
+    df_result = df_result.append({'Atual': scaler.inverse_transform(y)[0][0], 'Predição': scaler.inverse_transform(yhat)[0][0]}, ignore_index=True)
 
 
 # #### Tabulating Actuals, Predictions and Differences
