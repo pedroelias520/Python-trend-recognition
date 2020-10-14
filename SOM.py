@@ -53,7 +53,7 @@ from keras.layers.core import Activation
 from keras.callbacks import LambdaCallback
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
-
+import seaborn as sns
 
 
 # ### Data Preprocessing
@@ -209,8 +209,8 @@ dataset.head()
 # In[15]:
 
 
-number_of_test_data = 50
-number_of_holdout_data = 50
+number_of_test_data = 100
+number_of_holdout_data = 100
 number_of_training_data = len(dataset) - number_of_holdout_data - number_of_test_data
 print ("total, train, test, holdout:", len(dataset), number_of_training_data, number_of_test_data, number_of_holdout_data)
 
@@ -310,7 +310,7 @@ datahold_feed = hstack((in_seq1, in_seq2, in_seq3,in_seq4,out_seq_hold))
 
 
 n_features = datatrain_feed.shape[1]
-n_input = 4
+n_input = 5
 generator_train = TimeseriesGenerator(datatrain_feed, out_seq_train, length=n_input, batch_size=len(datatrain_feed))
 
 
@@ -392,7 +392,7 @@ model.summary()
 # In[56]:
 
 
-score = model.fit_generator(generator_train, epochs=3000, verbose=2, validation_data=generator_test)
+score = model.fit_generator(generator_train, epochs=30, verbose=2, validation_data=generator_test)
 
 
 # #### Plot of Training and Test Loss Functions
@@ -472,6 +472,7 @@ print("===============================================")
 plt.figure(figsize=(15,10))
 plt.plot(df_result['Actual'], color='blue')
 plt.plot(df_result['Prediction'], color='red')
+plt.title("Gráfico de teste")
 plt.show()
 
 
@@ -533,10 +534,47 @@ print("===============================================")
 
 # In[49]:
 
+graph_test = pd.DataFrame()
 
+diff = []
+for i in range(len(df_result)):
+     i_old = int(i)-1
+     difference_num = (df_result.iloc[i_old,1] - df_result.iloc[i,1])
+     
+     if (difference_num > 0):
+         diff.append(0)
+     else:
+         diff.append(1)
+
+
+graph_test['Prediction'] = df_result['Prediction'][0:100]
+graph_test['Difference_Afirm'] = diff
 plt.figure(figsize=(15,10))
-plt.plot(df_result['Actual'], color='blue')
-plt.plot(df_result['Prediction'], color='red')
+#plt.plot(df_result['Actual'], color='blue')
+#plt.plot(graph_test['Prediction'], color='red')
+sns.set(style='darkgrid')
+ax = sns.lineplot(x=graph_test.index,y=graph_test['Prediction'])
+ax.set(xlabel='Indices')
+labels = graph_test['Difference_Afirm'].dropna().unique().tolist()
+
+for label in labels:
+    sns.lineplot(x=graph_test[graph_test['Difference_Afirm'] == 1].index,
+                 y=graph_test[graph_test['Difference_Afirm'] == 1]['Prediction'],
+                 color='green')
+    ax.axvspan(graph_test[graph_test['Difference_Afirm'] == 1].index[0],
+               graph_test[graph_test['Difference_Afirm'] == 1].index[-1],
+               alpha=0.2,
+               color='green')
+    
+    sns.lineplot(x=graph_test[graph_test['Difference_Afirm'] == 0].index,
+                 y=graph_test[graph_test['Difference_Afirm'] == 0]['Prediction'],
+                 color='red')
+    ax.axvspan(graph_test[graph_test['Difference_Afirm'] == 0].index[0],
+               graph_test[graph_test['Difference_Afirm'] == 0].index[-1],
+               alpha=0.2,
+               color='red')
+
+plt.title("Gráfico de correção")
 plt.show()
 
 

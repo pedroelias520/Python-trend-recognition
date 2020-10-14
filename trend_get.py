@@ -70,7 +70,7 @@ class Interface():
 
 
     def csv_generation(self,company_name, period_time):
-        dados_yf = yf.download(tickers=company_name, period= '1y')        
+        dados_yf = yf.download(tickers=company_name, period= period_time)        
         path = 'C:/Users/Pedro Elias/Documents/Projetos_GitHub/Python-trend-recognition/'
         
         year = []
