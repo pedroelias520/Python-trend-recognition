@@ -547,7 +547,7 @@ for i in range(len(df_result)):
          diff.append(1)
 
 
-graph_test['Prediction'] = df_result['Prediction'][0:100]
+graph_test['Prediction'] = df_result['Prediction']
 graph_test['Difference_Afirm'] = diff
 plt.figure(figsize=(15,10))
 #plt.plot(df_result['Actual'], color='blue')
