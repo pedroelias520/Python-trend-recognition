@@ -208,9 +208,9 @@ dataset.head()
 
 # In[15]:
 
-
-number_of_test_data = 100
-number_of_holdout_data = 100
+print(len(dataset))
+number_of_test_data = 50
+number_of_holdout_data = 50
 number_of_training_data = len(dataset) - number_of_holdout_data - number_of_test_data
 print ("total, train, test, holdout:", len(dataset), number_of_training_data, number_of_test_data, number_of_holdout_data)
 
@@ -392,7 +392,7 @@ model.summary()
 # In[56]:
 
 
-score = model.fit_generator(generator_train, epochs=30, verbose=2, validation_data=generator_test)
+score = model.fit_generator(generator_train, epochs=100, verbose=2, validation_data=generator_test)
 
 
 # #### Plot of Training and Test Loss Functions
@@ -456,12 +456,12 @@ df_result
 mean = df_result['Actual'].mean()
 mae = (df_result['Actual'] - df_result['Prediction']).abs().mean()
 
-print("===============================================")
-print("Média de teste: ", mean)
-print("Diferença:", mae)
-print("Diferença/Média Percentual: ", 100*mae/mean,"%")
-print("Correção: ", 100 - 100*mae/mean,"%")
-print("===============================================")
+#print("===============================================")
+#print("Média de teste: ", mean)
+#print("Diferença:", mae)
+#print("Diferença/Média Percentual: ", 100*mae/mean,"%")
+#print("Correção: ", 100 - 100*mae/mean,"%")
+#print("===============================================")
 
 
 # #### Plot of Actuals and Predictions for Test Data
@@ -469,11 +469,11 @@ print("===============================================")
 # In[44]:
 
 
-plt.figure(figsize=(15,10))
-plt.plot(df_result['Actual'], color='blue')
-plt.plot(df_result['Prediction'], color='red')
-plt.title("Gráfico de teste")
-plt.show()
+#plt.figure(figsize=(15,10))
+#plt.plot(df_result['Actual'], color='blue')
+#plt.plot(df_result['Prediction'], color='red')
+#plt.title("Gráfico de teste")
+#plt.show()
 
 
 # ### Predictions for Hold-Out Data
@@ -523,12 +523,12 @@ df_result
 mean = df_result['Actual'].mean()
 mae = (df_result['Actual'] - df_result['Prediction']).abs().mean()
 
+print("===============================================")
 print("Média : ", mean)
 print("Diferença:", mae)
 print("Diferença/Média Percentual: ", 100*mae/mean,"%")
 print("Nível correção: ", 100 - 100*mae/mean,"%")
 print("===============================================")
-
 
 # #### Plot of Actuals and Predictions for Hold-Out Data
 
@@ -546,33 +546,37 @@ for i in range(len(df_result)):
      else:
          diff.append(1)
 
-
-graph_test['Prediction'] = df_result['Prediction']
+graph_test['Prediction'] = pd.Series(df_result['Prediction'].values)
 graph_test['Difference_Afirm'] = diff
+graph_test['Index'] = graph_test.index
 plt.figure(figsize=(15,10))
 #plt.plot(df_result['Actual'], color='blue')
-#plt.plot(graph_test['Prediction'], color='red')
-sns.set(style='darkgrid')
-ax = sns.lineplot(x=graph_test.index,y=graph_test['Prediction'])
-ax.set(xlabel='Indices')
-labels = graph_test['Difference_Afirm'].dropna().unique().tolist()
 
+plt.plot(df_result['Prediction'], color='red')
+index_1 = df_result['Prediction'].iloc[0]
+index_2 = df_result['Prediction'].iloc[-1]
+point_1 = [df_result.index.min(),int(index_1)]
+point_2 = [df_result.index.max(),int(index_2)]
+
+x = [point_1[0],point_2[0]]
+y = [point_1[1],point_2[1]]
+plt.plot(x,y)
+fig, ax = plt.subplots()
+#ax.plot(df_result['Prediction'], color='purple')
+sns.set(style='darkgrid')
+
+labels = graph_test['Difference_Afirm']
+#trans = mt.blended_transform_factory(ax.x_transform,ax.y_transform)
 for label in labels:
-    sns.lineplot(x=graph_test[graph_test['Difference_Afirm'] == 1].index,
-                 y=graph_test[graph_test['Difference_Afirm'] == 1]['Prediction'],
-                 color='green')
-    ax.axvspan(graph_test[graph_test['Difference_Afirm'] == 1].index[0],
-               graph_test[graph_test['Difference_Afirm'] == 1].index[-1],
-               alpha=0.2,
-               color='green')
+    try:        
+        ax.fill_between(df_result.index, 0, number_of_test_data-5, where= label == 1,
+                facecolor='green', alpha=0.5)
+        
+    except Exception as e:
+        print('Erro de captação dos dados de subida: '+str(e))
+        
     
-    sns.lineplot(x=graph_test[graph_test['Difference_Afirm'] == 0].index,
-                 y=graph_test[graph_test['Difference_Afirm'] == 0]['Prediction'],
-                 color='red')
-    ax.axvspan(graph_test[graph_test['Difference_Afirm'] == 0].index[0],
-               graph_test[graph_test['Difference_Afirm'] == 0].index[-1],
-               alpha=0.2,
-               color='red')
+    
 
 plt.title("Gráfico de correção")
 plt.show()
